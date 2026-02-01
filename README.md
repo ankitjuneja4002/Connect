@@ -56,7 +56,7 @@ REST + WebSocket → **Services** → **Repositories (MongoDB)**. Chat: **Kafka*
 **Prerequisites:** Java 17+, Docker (for MongoDB, Redis, Kafka).
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git clone https://github.com/ankitjuneja4002/Connect.git
 cd YOUR_REPO
 ./run-local.sh
 ```
