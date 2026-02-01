@@ -1,0 +1,107 @@
+package com.connect.controller;
+
+import java.util.Map;
+
+import com.connect.dto.LoginUserDTO;
+import com.connect.dto.OtpDTO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.connect.model.User;
+import com.connect.service.AuthService;
+
+@RestController
+@RequestMapping("/auth")
+@Slf4j
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthService authService;
+
+    // Handler method for handling the signup functionality.
+    @PostMapping("/signup")
+    public ResponseEntity<Map<String, String>> signupHandler(@RequestBody User user) {
+        log.info("Signup request by {}", user.toString());
+        authService.signupHandler(user);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(Map.of("response", "OTP sent to your email"));
+    }
+
+    @PostMapping("/signup/verifyOTP")
+    public ResponseEntity<Map<String, String>> verifyOTPHandler(@RequestBody OtpDTO otpDto) {
+        log.info("OTP Verification Request");
+        authService.createUser(otpDto.getOtp(), otpDto.getEmail());
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(Map.of("response", "User created successfully"));
+    }
+
+    @GetMapping("/signup/resendOTP")
+    public ResponseEntity<Map<String, String>> resendOTPHandler(@RequestParam("email") String email) {
+        log.info("Resend OTP Request by the email: {}", email);
+        authService.resendOTP(email);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(Map.of("response", "OTP sent successfully"));
+    }
+
+    // Handler method for handling the login functionality.
+    @PostMapping("/login")
+    public ResponseEntity<?> loginHandler(@RequestBody LoginUserDTO loginUser) throws Exception {
+        log.info("Login Request by {}", loginUser.toString());
+        var response = authService.loginHandler(loginUser);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<Map<String, String>> logoutHandler(@RequestParam("username") String username) {
+        if (username.isEmpty()) {
+            log.error("No user found");
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("response", "User not found"));
+        }
+        if (authService.handleLogout(username) == null) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("response", "Something went wrong at the server"));
+        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(Map.of("response", "Logged out successfully"));
+
+    }
+
+    // Demo endpoint to get OTP (for demo purposes only)
+    @GetMapping("/demo/otp")
+    public ResponseEntity<Map<String, String>> getOTPForDemo(@RequestParam("email") String email) {
+        try {
+            log.info("DEMO: OTP requested for email: {}", email);
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "Email parameter is required"));
+            }
+            String otp = authService.getOTPForDemo(email);
+            if (otp != null && !otp.isEmpty()) {
+                log.info("DEMO: OTP found for {}: {}", email, otp);
+                return ResponseEntity.ok(Map.of("otp", otp, "message", "OTP retrieved successfully"));
+            }
+            log.warn("DEMO: OTP not found for email: {}", email);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "OTP not found. Please signup first or OTP may have expired."));
+        } catch (Exception e) {
+            log.error("DEMO: Error retrieving OTP for email {}: {}", email, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Error retrieving OTP: " + e.getMessage()));
+        }
+    }
+}
