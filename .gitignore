@@ -35,6 +35,9 @@ build/
 # Environment files (never commit secrets)
 .env
 .mvn/
+
+# Local-only (not for repo)
+ABOUT.md
 index.html
 *.yml
 log/
