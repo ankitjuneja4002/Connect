@@ -14,7 +14,7 @@
 
 **Connect** is the backend for a real-time chat app: REST for **auth** (signup → OTP → login) and **rooms** (create, list, delete), and **WebSocket (STOMP)** for live chat. Messages flow through **Kafka** into an in-memory buffer and are written in batches to **MongoDB**. **Redis** caches OTPs and optional user cache. Built as a **monolithic** Spring Boot app so you can run and demo it with a single script.
 
-Perfect for **portfolio**, **interviews**, or as a **reference** for Spring Boot + event-driven + real-time APIs.
+Spring Boot + event-driven + real-time APIs.
 
 ---
 
